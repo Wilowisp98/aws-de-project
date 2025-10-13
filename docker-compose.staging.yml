@@ -1,0 +1,30 @@
+services:
+  aws-de-api:
+    build: .
+    container_name: aws-de-api-staging
+    ports:
+      - "8000:8000"
+    environment:
+      # Staging Environment Configuration
+      ENVIRONMENT: staging
+      DEBUG: false
+      LOG_LEVEL: info
+      APP_NAME: wilowslearning-staging
+      
+      # AWS Configuration (leave empty to use EC2 IAM role)
+      AWS_ACCESS_KEY_ID: ""
+      AWS_SECRET_ACCESS_KEY: ""
+      REGION: eu-west-3
+      BUCKET_NAME: wilows-ingestion-bucket
+      
+      # Data Pipeline Settings
+      DATA_PREFIX: data/incoming/
+    
+    restart: unless-stopped
+    
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/staging/v1/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
