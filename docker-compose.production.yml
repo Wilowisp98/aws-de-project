@@ -1,0 +1,38 @@
+services:
+  aws-de-api:
+    build: .
+    container_name: aws-de-api-production
+    ports:
+      - "8000:8000"
+    environment:
+      # Production Environment Configuration
+      ENVIRONMENT: production
+      DEBUG: false
+      LOG_LEVEL: warning
+      APP_NAME: wilowslearning-production
+      
+      # AWS Configuration (leave empty to use EC2 IAM role)
+      AWS_ACCESS_KEY_ID: ""
+      AWS_SECRET_ACCESS_KEY: ""
+      REGION: eu-west-3
+      BUCKET_NAME: wilows-ingestion-bucket
+      
+      # Data Pipeline Settings
+      DATA_PREFIX: data/incoming/
+    
+    restart: unless-stopped
+    
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/v1/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+    # Production-specific resource limits
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+        reservations:
+          memory: 256M

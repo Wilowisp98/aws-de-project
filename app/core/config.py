@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
+from typing import Optional
 from pydantic_settings import BaseSettings
 from dotenv import load_dotenv
+from .secrets import get_api_key
 
 load_dotenv()
 
@@ -15,19 +17,25 @@ class Config(BaseSettings):
     app_name: str
     
     # AWS settings
-    aws_access_key_id: str = None  # Optional: for local dev. Use IAM roles on EC2/Lambda
-    aws_secret_access_key: str = None  # Optional: for local dev. Use IAM roles on EC2/Lambda
+    aws_access_key_id: Optional[str] = None  # Optional: for local dev. Use IAM roles on EC2/Lambda
+    aws_secret_access_key: Optional[str] = None  # Optional: for local dev. Use IAM roles on EC2/Lambda
     region: str  # Required
     bucket_name: str  # Required
     
     # Data pipeline settings (required)
     data_prefix: str
     
-    # Security settings (required)
-    api_key: str
+    # Security settings (will be loaded based on environment)
+    api_key: Optional[str] = None
     
     # Optional settings with defaults
-    debug: bool = False
+    debug: Optional[bool] = False
+    
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        # For non-development environments, load API key from AWS Secrets Manager
+        if not self.api_key:
+            self.api_key = get_api_key(self.environment, self.region)
     
     @property
     def environment_prefix(self) -> str:

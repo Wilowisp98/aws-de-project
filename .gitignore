@@ -86,8 +86,8 @@ ipython_config.py
 # pipenv
 Pipfile.lock
 
-# poetry
-poetry.lock
+# poetry - uncomment if you want to ignore lock file
+# poetry.lock
 
 # pdm
 .pdm.toml
@@ -160,5 +160,96 @@ logs/
 temp/
 tmp/
 .cache/
+
+# AWS & Serverless
+.serverless/
+.aws-sam/
+samconfig.toml
+
+# Node.js (for Serverless plugins)
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+package-lock.json
+
+# Environment & Config files
+.env
+.env.local
+.env.*.local
+.env.development
+.env.staging
+.env.production
+
+# AWS Credentials & Keys
+*.csv
+*accessKeys*
+*credentials*
+*.pem
+*.key
+aws-credentials.json
 wilows-ingestion-user_accessKeys.csv
 wilows-ingestion-user_credentials.csv
+
+# Docker
+.dockerignore
+docker-compose.override.yml
+.docker/
+
+# Terraform (if used)
+*.tfstate
+*.tfstate.*
+.terraform/
+.terraform.lock.hcl
+terraform.tfvars
+
+# CDK (if used)
+cdk.out/
+*.js.map
+
+# Data files
+*.csv
+*.json
+*.parquet
+*.avro
+data/
+datasets/
+
+# Jupyter Notebooks checkpoints
+.ipynb_checkpoints/
+*.ipynb
+
+# IDE & Editor files
+*.swp
+*.swo
+*~
+.project
+.settings/
+
+# Build artifacts
+build/
+dist/
+*.tar.gz
+*.zip
+
+# OS specific
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+desktop.ini
+
+# Temporary files
+*.tmp
+*.bak
+*.backup
+*.orig
+
+# Monitoring & Logs
+cloudformation-template-*.json
+.aws-sam/
+sam-*
+logs/

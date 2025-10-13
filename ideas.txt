@@ -1,1 +1,43 @@
-- when ingesting, it checks it's size, and based in future benchrmarks, we could split that payload in smaller payloads and process them sync or async.
+1. create target group
+2. create lb (inbound e outbound para tudo, pode ser reduzido por segurança)
+3. create ec2 Instance
+    add as http80 the lb
+4. register the ec2 instance as the tg target
+5. create a key pair 
+6. connect to aws via ssh with the key pair rsa key
+7. install docker 
+    sudo yum update -y
+    sudo yum install -y docker
+    sudo systemctl start docker
+    sudo systemctl enable docker
+    sudo usermod -a -G docker ec2-user
+8. instalei docker compose
+9. Criei secrets para staging e production
+10. movi os ficheiros locais para a máquina
+11. build no docker
+12. happiness
+
+## Critical Configuration Steps:
+13. Security Group Configuration (CRITICAL!)
+    - ALB Security Group: Inbound HTTP (80) from 0.0.0.0/0
+    - EC2 Security Group: Inbound port 8000 from ALB Security Group
+    - EC2 Security Group: Inbound SSH (22) from your IP
+
+14. Target Group Health Check Configuration
+    - Protocol: HTTP
+    - Port: 8000 (Override, not "Traffic port")
+    - Path: /api/staging/v1/health
+    - This was crucial for getting targets healthy!
+
+15. IAM Role for EC2 (Best Practice)
+    - Create IAM role with S3 and Secrets Manager permissions
+    - Attach to EC2 instance instead of using hardcoded AWS credentials
+
+16. Environment Variables Setup
+    - Configure proper environment variables in docker-compose files
+    - Set ENVIRONMENT=staging (not development) for staging deployment
+
+17. Testing & Validation
+    - Test health endpoint: curl http://ALB_DNS/api/staging/v1/health
+    - Test data ingestion: POST to /api/staging/v1/data/ingest
+    - Verify S3 bucket receives data

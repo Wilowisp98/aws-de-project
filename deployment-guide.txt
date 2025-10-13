@@ -1,0 +1,132 @@
+# Complete AWS EC2 + ALB Deployment Guide
+# FastAPI Application with Docker & Load Balancer
+# Follow this order for successful deployment
+
+## Phase 1: AWS Infrastructure Setup
+
+1. Create S3 Bucket
+   - Name: wilows-ingestion-bucket (or your preferred name)
+   - Region: eu-west-3 (or your preferred region)
+   - Default settings are fine
+
+2. Create IAM Role for EC2 (RECOMMENDED)
+   - Create role with EC2 service
+   - Attach policies: AmazonS3FullAccess, SecretsManagerReadWrite
+   - Name: ec2-s3-secrets-role
+
+3. Create AWS Secrets Manager Secrets
+   - Secret name: wilows-api-secrets-staging
+   - Secret value: {"API_KEY": "your-generated-key-here"}
+   - Secret name: wilows-api-secrets-production  
+   - Secret value: {"API_KEY": "your-production-key-here"}
+
+4. Create Key Pair
+   - Name: wilows-pair (or your preferred name)
+   - Download .pem file and keep it secure
+   - chmod 400 wilows-pair.pem (on Linux/Mac)
+
+## Phase 2: Load Balancer & Target Group
+
+5. Create Target Group FIRST
+   - Name: wilows-ingestion-tg
+   - Type: Instance
+   - Protocol: HTTP, Port: 8000 (NOT 80!)
+   - VPC: Default VPC
+   - Health check path: /api/staging/v1/health
+   - Health check port: Override 8000
+   - Advanced: Healthy threshold: 2, Interval: 30s
+
+6. Create Application Load Balancer
+   - Name: wilows-ingestion-lb
+   - Scheme: Internet-facing
+   - IP address type: IPv4
+   - Listeners: HTTP:80
+   - Availability Zones: Select at least 2
+   - Security group: Create new (allow HTTP 80 from 0.0.0.0/0)
+   - Default action: Forward to wilows-ingestion-tg
+
+## Phase 3: EC2 Instance Setup
+
+7. Launch EC2 Instance
+   - AMI: Amazon Linux
+   - Instance type: t2.micro (or t3.micro)
+   - Key pair: wilows-pair (from step 4)
+   - Security group: Create new or use existing
+   - IAM role: ec2-s3-secrets-role (from step 2)
+   - User data: (optional bootstrap script)
+
+8. Configure EC2 Security Group (CRITICAL!)
+   - Inbound rules:
+     * SSH (22) from Your IP
+     * Custom TCP (8000) from ALB Security Group
+   - Outbound rules: All traffic to 0.0.0.0/0
+
+9. Register EC2 Instance to Target Group
+   - Go to Target Groups → wilows-ingestion-tg → Targets
+   - Register targets → Select your EC2 instance
+   - Port: 8000 (NOT 80!)
+   - Include as pending below → Register
+
+## Phase 4: EC2 Software Installation
+
+10. Connect to EC2 via SSH
+    ssh -i wilows-pair.pem ec2-user@YOUR_EC2_PUBLIC_IP
+
+11. Install Docker
+    sudo yum update -y
+    sudo yum install -y docker
+    sudo systemctl start docker
+    sudo systemctl enable docker
+    sudo usermod -a -G docker ec2-user
+    # Exit and reconnect for group changes to take effect
+
+12. Install Docker Compose
+    sudo curl -L "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+    sudo chmod +x /usr/local/bin/docker-compose
+
+## Phase 5: Application Deployment
+
+13. Transfer Application Files to EC2
+    # From your local machine:
+    scp -i wilows-pair.pem -r ./aws-de-project ec2-user@YOUR_EC2_IP:~/
+    # Or use git clone if code is in repository
+
+14. Configure Environment Variables
+    # Verify docker-compose.staging.yml has:
+    # ENVIRONMENT=staging (NOT development)
+    # All other required environment variables
+
+15. Build and Run Application
+    cd aws-de-project
+    docker-compose -f docker-compose.staging.yml build
+    docker-compose -f docker-compose.staging.yml up -d
+
+## Phase 6: Critical Configuration Fixes
+
+16. Fix ALB Security Group (CRITICAL!)
+    - Go to Load Balancers → Security → Edit inbound rules
+    - Change source from ALB security group to 0.0.0.0/0
+    - This allows internet traffic to reach your ALB
+
+17. Verify Target Group Health Check Settings
+    - Protocol: HTTP
+    - Port: Override 8000 (NOT "Traffic port")
+    - Path: /api/staging/v1/health
+    - Wait for target to become "Healthy"
+
+## Phase 7: Testing & Validation
+
+18. Test Health Endpoint
+    curl http://YOUR_ALB_DNS/api/staging/v1/health
+    # Expected: {"status":"healthy","message":"API is running"}
+
+19. Test Data Ingestion Endpoint
+    curl -X POST http://YOUR_ALB_DNS/api/staging/v1/data/ingest \
+      -H "Content-Type: application/json" \
+      -H "Authorization: Bearer YOUR_API_KEY" \
+      -d '{"payload": {"message": "Hello from API!", "test": true}}'
+    # Expected: {"message": "Data ingested successfully"}
+
+20. Verify S3 Data Upload
+    # Check S3 bucket for timestamped JSON files
+    # Files should appear in staging/data/incoming/ prefix
