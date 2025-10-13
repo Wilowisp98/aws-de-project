@@ -1,8 +1,4 @@
 #!/usr/bin/env python3
-"""
-FastAPI S3 Ingestion Benchmark Suite
-Comprehensive performance testing with statistical analysis and visualization.
-"""
 import requests
 import json
 import time
@@ -14,12 +10,11 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 from datetime import datetime
 from pathlib import Path
-import csv
 
 # Configuration
-BASE_URL = "http://localhost:8000"
-API_KEY = "1rge0nQy6MmiHVv2bA0Lt_8W6eaossBBpmAehTqVHIk"
-INGEST_ENDPOINT = f"{BASE_URL}/api/dev/v1/data/ingest"
+BASE_URL = "YOUR_BASE_URL"
+API_KEY = "YOUR_API_KEY"
+INGEST_ENDPOINT = f"{BASE_URL}/api/staging/v1/data/ingest"
 
 # Create results directory
 RESULTS_DIR = Path("benchmark_results")
@@ -57,7 +52,9 @@ def generate_benchmark_data(num_items):
         }
         data["items"].append(item)
     
-    return data
+    final_data = {'payload' : data}
+
+    return final_data
 
 def single_request_benchmark(payload, request_id):
     """Perform a single request and return timing data."""
@@ -384,12 +381,12 @@ def main():
     
     # Check if server is running
     try:
-        response = requests.get(f"{BASE_URL}/api/dev/v1/health", timeout=5)
+        response = requests.get(f"{BASE_URL}/api/staging/v1/health", timeout=5)
         if response.status_code != 200:
             print("❌ Server health check failed!")
             return
     except:
-        print("❌ Cannot connect to server! Make sure it's running on http://localhost:8000")
+        print("❌ Cannot connect to server!")
         return
     
     print("✅ Server is running, starting benchmark...")
