@@ -182,7 +182,6 @@ package-lock.json
 .env.production
 
 # AWS Credentials & Keys
-*.csv
 *accessKeys*
 *credentials*
 *.pem
@@ -208,7 +207,6 @@ cdk.out/
 *.js.map
 
 # Data files
-*.csv
 *.json
 *.parquet
 *.avro
@@ -253,3 +251,5 @@ cloudformation-template-*.json
 .aws-sam/
 sam-*
 logs/
+
+benchmark_suite.py
