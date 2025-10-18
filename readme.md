@@ -68,4 +68,3 @@ What remains to be tested is the system’s performance under **high-concurrency
 * [ ] GitHub Actions
 * [ ] Airflow - ETL & Data Quality
 * [ ] Final API that fetches data from the Silver/Gold layer
-

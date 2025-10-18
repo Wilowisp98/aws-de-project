@@ -3,8 +3,8 @@ from fastapi import FastAPI
 from contextlib import asynccontextmanager
 
 from app.core.config import config
-from app.core.logging import setup_logging
-logger = setup_logging()
+from utils.logging import setup_logging
+logger = setup_logging(log_level=config.log_level)
 
 from app.api.routes import health, data
 
@@ -33,10 +33,10 @@ async def lifespan(_: FastAPI):
     
     # Initialize S3 connection at startup - FAIL if S3 unavailable
     try:
-        from app.api.dependencies import initialize_s3_service
+        from utils.dependencies import get_api_s3_handler_ingestion_bucket
         logger.info("Initializing S3 connection...")
         logger.info(f"Configuration loaded - Region: {config.region}, Bucket: {config.bucket_name}")
-        initialize_s3_service()
+        get_api_s3_handler_ingestion_bucket()
         logger.info("S3 connection established successfully!")
     except Exception as e:
         logger.error(f"Failed to initialize S3 service: {e}")
@@ -83,7 +83,7 @@ def create_app() -> FastAPI:
     
     # Include routers with dynamic prefixes
     # To add new routes, simply replicate what's being done below and create a new route on the app/api/routes folder.
-    app.include_router(health.router, prefix=api_prefix, tags=["health"])
+    app.include_router(health.router, prefix=api_prefix, tags=["health", "s3-status"])
     app.include_router(data.router, prefix=data_prefix, tags=["data"])
     
     return app

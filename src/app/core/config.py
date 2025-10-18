@@ -2,9 +2,12 @@
 from typing import Optional
 from pydantic_settings import BaseSettings
 from dotenv import load_dotenv
+from pathlib import Path
 from .secrets import get_api_key
 
-load_dotenv()
+PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent.parent
+dotenv_path = PROJECT_ROOT / "env/.env.app"
+load_dotenv(dotenv_path=dotenv_path)
 
 class Config(BaseSettings):
     """

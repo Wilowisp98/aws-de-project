@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from fastapi import APIRouter, Depends
-from app.api.dependencies import get_s3_service
-from app.services.s3_service import S3Handler
+from utils.dependencies import get_api_s3_handler_ingestion_bucket
+from utils.s3_service import S3Handler
 from app.core.security import require_api_key
 
 router = APIRouter()
@@ -20,7 +20,7 @@ def health_check():
 
 @router.get("/s3-status")
 def s3_status(
-    s3_service: S3Handler = Depends(get_s3_service),
+    s3_service: S3Handler = Depends(get_api_s3_handler_ingestion_bucket),
     _: str = Depends(require_api_key)
 ):
     """

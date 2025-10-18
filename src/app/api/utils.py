@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from datetime import datetime, timezone
-from app.services.s3_service import S3Handler
+from utils.s3_service import S3Handler
 from app.core.config import config
 
 def generate_timestamped_filename() -> str:

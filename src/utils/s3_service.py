@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import boto3
+import aioboto3
 from botocore.config import Config
 
 class S3Handler:
@@ -27,20 +28,18 @@ class S3Handler:
             retries={'max_attempts': 2}
         )
         
-        # Create S3 client with flexible authentication
-        if aws_access_key_id and aws_secret_access_key:
-            # Explicit credentials (local development)
-            self.s3_client = boto3.client(
-                's3',
-                aws_access_key_id=aws_access_key_id,
-                aws_secret_access_key=aws_secret_access_key,
-                region_name=region,
-                config=boto_config
-            )
-        else:
-            # Use default AWS credentials chain (IAM roles, environment variables, etc.)
-            self.s3_client = boto3.client(
-                's3', 
-                region_name=region, 
-                config=boto_config
-            )
+        # Explicit credentials (local development)
+        self.s3_client = boto3.client(
+            's3',
+            aws_access_key_id=aws_access_key_id,
+            aws_secret_access_key=aws_secret_access_key,
+            region_name=region,
+            config=boto_config
+        )
+        
+        # Create the asynchronous session for on-demand use
+        self.s3_aio_client = aioboto3.Session(
+            aws_access_key_id=aws_access_key_id,
+            aws_secret_access_key=aws_secret_access_key,
+            region_name=region
+        )

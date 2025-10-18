@@ -1,10 +1,7 @@
 # -*- coding: utf-8 -*-
 import logging
 
-from app.core.config import config
-
-
-def setup_logging():
+def setup_logging(log_level: str = "INFO"):
     """
     Configures the root logger with the log level from application config,
     sets up a standardized format for log messages with timestamps, and
@@ -13,7 +10,7 @@ def setup_logging():
     Returns:
         logging.Logger: Logger instance for the current module (__name__).
     """
-    level = config.log_level
+    level = log_level
     
     logging.basicConfig(
         level=getattr(logging, level.upper()),

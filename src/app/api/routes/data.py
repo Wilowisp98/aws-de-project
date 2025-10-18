@@ -3,8 +3,8 @@ from fastapi import APIRouter, Depends, HTTPException
 from typing import Dict, Any
 import json
 from datetime import datetime, timezone
-from app.api.dependencies import get_s3_service
-from app.services.s3_service import S3Handler
+from utils.dependencies import get_api_s3_handler_ingestion_bucket
+from utils.s3_service import S3Handler
 from app.api.utils import generate_timestamped_filename, get_s3_key
 from app.core.security import require_api_key
 import boto3
@@ -22,7 +22,7 @@ class IngestRequest(BaseModel):
 @router.post("/ingest")
 def ingest_data(
     payload: IngestRequest,
-    s3_service: S3Handler = Depends(get_s3_service),
+    s3_service: S3Handler = Depends(get_api_s3_handler_ingestion_bucket),
     _: str = Depends(require_api_key)
 ):
     """
