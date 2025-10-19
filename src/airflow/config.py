@@ -4,7 +4,7 @@ from pydantic_settings import BaseSettings
 from pathlib import Path
 from dotenv import load_dotenv
 
-PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent.parent
+PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
 dotenv_path = PROJECT_ROOT / "env/.env.airflow"
 load_dotenv(dotenv_path=dotenv_path)
 

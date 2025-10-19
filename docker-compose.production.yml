@@ -1,6 +1,6 @@
 services:
   aws-de-api:
-    build: .
+    build: ./src/app
     container_name: aws-de-api-production
     ports:
       - "8000:8000"
@@ -30,6 +30,44 @@ services:
       start_period: 40s
 
     # Production-specific resource limits
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+        reservations:
+          memory: 256M
+
+  airflow:
+    build:
+      context: ./src/airflow
+    container_name: airflow-production
+    ports:
+      - "8080:8080"
+    environment:
+      # Airflow Environment
+      AIRFLOW__CORE__EXECUTOR: LocalExecutor
+      AIRFLOW__CORE__LOAD_EXAMPLES: 'False'
+      AIRFLOW__CORE__FERNET_KEY: ""
+      AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION: 'False'
+      AIRFLOW__WEBSERVER__EXPOSE_CONFIG: 'True'
+      # Pipeline/ETL envs (from .env.airflow)
+      ENVIRONMENT: production
+      DEBUG: false
+      LOG_LEVEL: WARNING
+      APP_NAME: wilowslearning-production
+      AWS_ACCESS_KEY_ID: ""
+      AWS_SECRET_ACCESS_KEY: ""
+      REGION: eu-west-3
+      BUCKET_ORIGIN_NAME: wilows-ingestion-bucket
+      BUCKET_DESTINY_NAME: wilows-core-bucket
+      ORIGIN_DATA_PREFIX: production/data/incoming/
+      DESTINY_DATA_PREFIX: data/core/
+    volumes:
+      - ./src/airflow/dags:/opt/airflow/dags
+      - ./src/airflow/config.py:/opt/airflow/config.py
+    depends_on:
+      - aws-de-api
+    restart: unless-stopped
     deploy:
       resources:
         limits:

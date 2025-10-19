@@ -1,12 +1,11 @@
 # -*- coding: utf-8 -*-
 import logging
-from airflow.dags.config import config
 from utils.s3_service import S3Handler
 from functools import lru_cache
 
 logger = logging.getLogger(__name__)
 
-def create_s3_handler(bucket_name) -> S3Handler:
+def create_s3_handler(bucket_name, config) -> S3Handler:
     """
     Creates and returns a new S3Handler instance for a specific bucket.
 
@@ -53,4 +52,8 @@ def get_api_s3_handler_ingestion_bucket() -> S3Handler:
     Caches the handler instance for efficiency.
     """
     from app.core.config import config
-    return create_s3_handler(config.bucket_name)
+    return create_s3_handler(config.bucket_name, config)
+
+def get_airflow_s3_handler(bucket_name) -> S3Handler:
+    from airflow.config import config
+    return create_s3_handler(bucket_name, config)

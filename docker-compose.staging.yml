@@ -1,30 +1,61 @@
 services:
   aws-de-api:
-    build: .
+    build: ./src/app
     container_name: aws-de-api-staging
     ports:
       - "8000:8000"
     environment:
-      # Staging Environment Configuration
       ENVIRONMENT: staging
       DEBUG: false
       LOG_LEVEL: info
       APP_NAME: wilowslearning-staging
-      
-      # AWS Configuration (leave empty to use EC2 IAM role)
       AWS_ACCESS_KEY_ID: ""
       AWS_SECRET_ACCESS_KEY: ""
       REGION: eu-west-3
       BUCKET_NAME: wilows-ingestion-bucket
-      
-      # Data Pipeline Settings
       DATA_PREFIX: data/incoming/
-    
     restart: unless-stopped
-    
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/api/staging/v1/health"]
       interval: 30s
       timeout: 10s
       retries: 3
       start_period: 40s
+
+  airflow:
+    build:
+      context: ./src/airflow
+    container_name: airflow-staging
+    ports:
+      - "8080:8080"
+    environment:
+      AIRFLOW__CORE__EXECUTOR: LocalExecutor
+      AIRFLOW__CORE__LOAD_EXAMPLES: "False"
+      AIRFLOW__CORE__FERNET_KEY: "YOUR_GENERATED_KEY_HERE"
+      AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION: "False"
+      AIRFLOW__WEBSERVER__EXPOSE_CONFIG: "True"
+      AIRFLOW__CORE__DAGS_FOLDER: "/src/airflow/dags"
+      ENVIRONMENT: staging
+      DEBUG: false
+      LOG_LEVEL: INFO
+      APP_NAME: wilowslearning-staging
+      AWS_ACCESS_KEY_ID: ""
+      AWS_SECRET_ACCESS_KEY: ""
+      REGION: eu-west-3
+      BUCKET_ORIGIN_NAME: wilows-ingestion-bucket
+      BUCKET_DESTINY_NAME: wilows-core-bucket
+      ORIGIN_DATA_PREFIX: data/incoming/
+      DESTINY_DATA_PREFIX: data/core/
+    volumes:
+      - ./src/airflow/dags:/opt/airflow/dags
+      - ./src/airflow/config.py:/opt/airflow/config.py
+      - airflow_logs:/opt/airflow/logs
+      - airflow_db:/opt/airflow/airflow.db
+    depends_on:
+      aws-de-api:
+        condition: service_healthy
+    restart: unless-stopped
+
+volumes:
+  airflow_logs:
+  airflow_db:

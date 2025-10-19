@@ -8,8 +8,8 @@ import json
 
 import aioboto3
 import pandas as pd
-from airflow.dags.config import config
-from utils.dependencies import create_s3_handler
+from airflow.config import config
+from utils.dependencies import get_airflow_s3_handler
 from utils.logging import setup_logging
 from utils.s3_service import S3Handler
 
@@ -186,12 +186,12 @@ def main():
     cleans up the source files.
     """
     logger.info("Initializing S3 handler for ORIGIN bucket...")
-    origin_s3_handler = create_s3_handler(
+    origin_s3_handler = get_airflow_s3_handler(
         bucket_name=config.bucket_origin_name
     )
 
     logger.info("Initializing S3 handler for DESTINATION bucket...")
-    dest_s3_handler = create_s3_handler(
+    dest_s3_handler = get_airflow_s3_handler(
         bucket_name=config.bucket_destiny_name
     )
 
