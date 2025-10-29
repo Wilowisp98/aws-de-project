@@ -7,7 +7,6 @@ from utils.dependencies import get_api_s3_handler_ingestion_bucket
 from utils.s3_service import S3Handler
 from app.api.utils import generate_timestamped_filename, get_s3_key
 from app.core.security import require_api_key
-import boto3
 import logging
 from pydantic import BaseModel, Field
 from typing import Dict, Any
@@ -62,10 +61,8 @@ def ingest_data(
         return {
             "message": "Data ingested successfully"
         }
-    except boto3.exceptions.S3UploadFailedError as e:
-        raise HTTPException(status_code=502, detail="S3 upload failed")
-    except json.JSONEncodeError as e:
-        raise HTTPException(status_code=400, detail="Invalid JSON data format")
     except Exception as e:
         logger.error(f"Unexpected error in data ingestion: {str(e)}")
-        raise HTTPException(status_code=500, detail="Internal server error")
+        return {
+            "status": "error", "message": str(e)
+        }

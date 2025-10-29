@@ -25,4 +25,4 @@ COPY . .
 
 EXPOSE 8080
 
-CMD ["webserver"]
+CMD ["standalone"]
